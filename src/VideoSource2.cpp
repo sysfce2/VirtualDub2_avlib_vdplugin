@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015-2020 Anton Shekhovtsov
- * Copyright (C) 2023-2025 v0lt
+ * Copyright (C) 2023-2026 v0lt
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -1202,7 +1202,14 @@ bool VDFFVideoSource::SetTargetFormat(nsVDXPixmap::VDXPixmapFormat opt_format, b
 	case AV_PIX_FMT_YUV420P:
 	case AV_PIX_FMT_YUVJ420P:
 		src_fmt = AV_PIX_FMT_YUV420P;
-		perfect_format = kPixFormat_YUV420_Planar;
+		switch (m_pCodecCtx->field_order) {
+		case AV_FIELD_TT:
+		case AV_FIELD_BB:
+			perfect_format = kPixFormat_YUV420i_Planar;
+			break;
+		default:
+			perfect_format = kPixFormat_YUV420_Planar;
+		}
 		trigger = kPixFormat_YUV420_Planar;
 		perfect_bitexact = true;
 		// examples: xvid
@@ -1458,6 +1465,9 @@ bool VDFFVideoSource::SetTargetFormat(nsVDXPixmap::VDXPixmapFormat opt_format, b
 		case kPixFormat_YUV420_Planar:
 			format = kPixFormat_YUV420_Planar_FR;
 			break;
+		case kPixFormat_YUV420i_Planar:
+			format = kPixFormat_YUV420i_Planar_FR;
+			break;
 		case kPixFormat_YUV420it_Planar:
 			format = kPixFormat_YUV420it_Planar_FR;
 			break;
@@ -1489,6 +1499,12 @@ bool VDFFVideoSource::SetTargetFormat(nsVDXPixmap::VDXPixmapFormat opt_format, b
 			break;
 		case kPixFormat_YUV420_Planar_FR:
 			format = kPixFormat_YUV420_Planar_709_FR;
+			break;
+		case kPixFormat_YUV420i_Planar:
+			format = kPixFormat_YUV420i_Planar_709;
+			break;
+		case kPixFormat_YUV420i_Planar_FR:
+			format = kPixFormat_YUV420i_Planar_709_FR;
 			break;
 		case kPixFormat_YUV420it_Planar:
 			format = kPixFormat_YUV420it_Planar_709;
