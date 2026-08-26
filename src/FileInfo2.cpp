@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015-2020 Anton Shekhovtsov
- * Copyright (C) 2023-2025 v0lt
+ * Copyright (C) 2023-2026 v0lt
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -223,55 +223,77 @@ void VDFFInputFileInfoDialog::print_video()
 
 	if (pVideoCtx->pix_fmt != AV_PIX_FMT_NONE)
 	{
-		char bufA[256];
-		strcpy_s(bufA, av_get_pix_fmt_name(pVideoCtx->pix_fmt));
-		const AVPixFmtDescriptor* desc = av_pix_fmt_desc_get(pVideoCtx->pix_fmt);
-		bool is_rgb = (desc->flags & AV_PIX_FMT_FLAG_RGB) != 0;
+		std::string str = av_get_pix_fmt_name(pVideoCtx->pix_fmt);
 
-		if (!is_rgb) {
+		switch (pVideoCtx->field_order) {
+		case AV_FIELD_TT:
+			str.append(" TFF");
+			break;
+		case AV_FIELD_BB:
+			str.append(" BFF");
+			break;
+		case AV_FIELD_TB:
+		case AV_FIELD_BT:
+			assert(0);
+			break;
+		}
+
+		const AVPixFmtDescriptor* desc = av_pix_fmt_desc_get(pVideoCtx->pix_fmt);
+
+		if ((desc->flags & AV_PIX_FMT_FLAG_RGB) == 0) { // not RGB, YUV
 			const char* spc = "?";
 			const char* r = nullptr;
-			if (pVideoCtx->colorspace == AVCOL_SPC_UNSPECIFIED) spc = nullptr;
-			if (pVideoCtx->colorspace == AVCOL_SPC_BT709) spc = "bt.709";
-			if (pVideoCtx->colorspace == AVCOL_SPC_BT470BG) spc = "bt.601";
-			if (pVideoCtx->colorspace == AVCOL_SPC_SMPTE170M) spc = "bt.601";
-			if (pVideoCtx->colorspace == AVCOL_SPC_SMPTE240M) spc = "bt.601";
-			if (pVideoCtx->colorspace == AVCOL_SPC_FCC) spc = "FCC";
-			if (pVideoCtx->colorspace == AVCOL_SPC_YCOCG) spc = "YCoCg";
-			if (pVideoCtx->colorspace == AVCOL_SPC_BT2020_NCL) spc = "bt.2020-ncl";
-			if (pVideoCtx->colorspace == AVCOL_SPC_BT2020_CL) spc = "bt.2020-cl";
-			if (pVideoCtx->color_range == AVCOL_RANGE_JPEG) r = "full";
-			if (spc) {
-				strcat_s(bufA, " (");
-				strcat_s(bufA, spc);
-				if (r) {
-					strcat_s(bufA, ":");
-					strcat_s(bufA, r);
-				}
-				strcat_s(bufA, ")");
+			switch (pVideoCtx->colorspace) {
+			case AVCOL_SPC_BT709:
+				str.append(" BT.709");
+				break;
+			case AVCOL_SPC_FCC:
+				str.append(" FCC");
+				break;
+			case AVCOL_SPC_BT470BG:
+			case AVCOL_SPC_SMPTE170M:
+			case AVCOL_SPC_SMPTE240M:
+				str.append(" BT.601");
+				break;
+
+			case AVCOL_SPC_YCOCG:
+				str.append(" YCoCg");
+				break;
+			case AVCOL_SPC_BT2020_NCL:
+				str.append(" BT.2020-ncl");
+				break;
+			case AVCOL_SPC_BT2020_CL:
+				str.append(" BT.2020-cl");
+				break;
+			case AVCOL_SPC_IPT_C2:
+				str.append(" IPT-C2");
+				break;
+			}
+
+			if (pVideoCtx->color_range == AVCOL_RANGE_JPEG) {
+				str.append(" FR");
 			}
 		}
 
-		SetDlgItemTextA(mhdlg, IDC_VIDEO_PIXFMT, bufA);
-
+		SetDlgItemTextA(mhdlg, IDC_VIDEO_PIXFMT, str.c_str());
 	}
 	else {
 		SetDlgItemTextW(mhdlg, IDC_VIDEO_PIXFMT, L"N/A");
 	}
 
-	std::wstring str;
+	std::wstring wstr;
 
 	if (segment->is_image) {
-		str = std::format(L"{} x {}", pVideoCtx->width, pVideoCtx->height);
-		SetDlgItemTextW(mhdlg, IDC_VIDEO_WXH, str.c_str());
+		wstr = std::format(L"{} x {}", pVideoCtx->width, pVideoCtx->height);
+		SetDlgItemTextW(mhdlg, IDC_VIDEO_WXH, wstr.c_str());
 	}
 	else {
 		VDXFraction fr = segment->video_source->m_streamInfo.mInfo.mSampleRate;
-		str = std::format(L"{} x {}, {:.3f} fps", pVideoCtx->width, pVideoCtx->height, (double)fr.mNumerator / fr.mDenominator);
+		wstr = std::format(L"{} x {}, {:.3f} fps", pVideoCtx->width, pVideoCtx->height, (double)fr.mNumerator / fr.mDenominator);
 		if (segment->video_source->average_fr) {
-			str.append(L" (average)");
+			wstr.append(L" (average)");
 		}
-		SetDlgItemTextW(mhdlg, IDC_VIDEO_WXH, str.c_str());
+		SetDlgItemTextW(mhdlg, IDC_VIDEO_WXH, wstr.c_str());
 	}
 
 	AVRational ar = av_make_q(1, 1);
@@ -283,12 +305,12 @@ void VDFFInputFileInfoDialog::print_video()
 	}
 	AVRational ar1;
 	av_reduce(&ar1.num, &ar1.den, ar.num, ar.den, INT_MAX);
-	str = std::format(L"{} : {}", ar1.num, ar1.den);
-	SetDlgItemTextW(mhdlg, IDC_VIDEO_ASPECTRATIO, str.c_str());
+	wstr = std::format(L"{} : {}", ar1.num, ar1.den);
+	SetDlgItemTextW(mhdlg, IDC_VIDEO_ASPECTRATIO, wstr.c_str());
 
 	if (pVideoCtx->bit_rate) {
-		str = std::format(L"{} kb/sec", pVideoCtx->bit_rate / 1000);
-		SetDlgItemTextW(mhdlg, IDC_VIDEO_BITRATE, str.c_str());
+		wstr = std::format(L"{} kb/sec", pVideoCtx->bit_rate / 1000);
+		SetDlgItemTextW(mhdlg, IDC_VIDEO_BITRATE, wstr.c_str());
 	} else {
 		SetDlgItemTextW(mhdlg, IDC_VIDEO_BITRATE, L"N/A");
 	}
