@@ -1110,6 +1110,7 @@ bool VDFFVideoSource::SetTargetFormat(nsVDXPixmap::VDXPixmapFormat opt_format, b
 		if (m_pCodecCtx->width <= 1024 && m_pCodecCtx->height <= 576) {
 			break;
 		}
+		[[fallthrough]];
 	case AVCOL_SPC_BT709:
 	case AVCOL_SPC_BT2020_NCL: // VirtualDub does not support BT.2020
 	case AVCOL_SPC_BT2020_CL:
