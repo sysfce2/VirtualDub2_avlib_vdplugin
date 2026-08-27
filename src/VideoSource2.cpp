@@ -587,7 +587,7 @@ bool VDFFVideoSource::possible_delay()
 	return false;
 }
 
-bool VDFFVideoSource::is_intra()
+bool VDFFVideoSource::is_intra() const
 {
 	if (is_image_list) {
 		return false;
@@ -596,39 +596,10 @@ bool VDFFVideoSource::is_intra()
 		return true;
 	}
 
-	AVCodecID codec_id = m_pStream->codecpar->codec_id;
-	// various intra codecs
-	switch (codec_id) {
-	case AV_CODEC_ID_CLLC:
-	case AV_CODEC_ID_DNXHD:
-	case AV_CODEC_ID_DVVIDEO:
-	case AV_CODEC_ID_MJPEG:
-	case AV_CODEC_ID_RAWVIDEO:
-	case AV_CODEC_ID_HUFFYUV:
-	case AV_CODEC_ID_FFV1:
-	case AV_CODEC_ID_PNG:
-	case AV_CODEC_ID_FFVHUFF:
-	case AV_CODEC_ID_FRAPS:
-	case AV_CODEC_ID_JPEG2000:
-	case AV_CODEC_ID_DIRAC:
-	case AV_CODEC_ID_V210:
-	case AV_CODEC_ID_R210:
-	case AV_CODEC_ID_R10K:
-	case AV_CODEC_ID_LAGARITH:
-	case AV_CODEC_ID_PRORES:
-	case AV_CODEC_ID_UTVIDEO:
-	case AV_CODEC_ID_V410:
-	case AV_CODEC_ID_HQ_HQA:
-	case AV_CODEC_ID_HQX:
-	case AV_CODEC_ID_SNOW:
-	case AV_CODEC_ID_CFHD:
-	case AV_CODEC_ID_MAGICYUV:
-	case AV_CODEC_ID_SHEERVIDEO:
+	const AVCodecDescriptor* desc = avcodec_descriptor_get(m_pStream->codecpar->codec_id);
+	if (desc && (desc->props & AV_CODEC_PROP_INTRA_ONLY)) {
 		return true;
 	}
-
-	const AVCodecDescriptor* desc = avcodec_descriptor_get(codec_id);
-	if (desc && (desc->props & AV_CODEC_PROP_INTRA_ONLY)) return true;
 
 	return false;
 }

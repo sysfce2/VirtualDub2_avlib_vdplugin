@@ -216,7 +216,7 @@ private:
 	void setCopyMode(const bool v);
 	void setDecodeMode(const bool v);
 	void setCacheMode(const bool v);
-	bool is_intra();
+	bool is_intra() const;
 	bool allow_copy();
 	bool possible_delay();
 	int  calc_sparse_key(const int64_t sample, int64_t& pos);
