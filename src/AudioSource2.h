@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015-2020 Anton Shekhovtsov
- * Copyright (C) 2023-2025 v0lt
+ * Copyright (C) 2023-2026 v0lt
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -32,7 +32,7 @@ public:
 
 	int VDXAPIENTRY AddRef() override;
 	int VDXAPIENTRY Release() override;
-	void* VDXAPIENTRY AsInterface(uint32_t iid) override;
+	void* VDXAPIENTRY AsInterface(uint32 iid) override;
 
 	void VDXAPIENTRY GetStreamSourceInfo(VDXStreamSourceInfo& srcInfo) override { srcInfo = m_streamInfo; }
 	bool VDXAPIENTRY Read(int64_t lStart, uint32_t lCount, void* lpBuffer, uint32_t cbBuffer, uint32_t* lBytesRead, uint32_t* lSamplesRead) override;
@@ -46,8 +46,8 @@ public:
 	bool VDXAPIENTRY IsDecodeErrorModeSupported(ErrorMode mode) override { return mode == IVDXStreamSource::kErrorModeReportAll; }
 
 	bool VDXAPIENTRY IsVBR() override { return false; }
-	int64_t VDXAPIENTRY TimeToPositionVBR(int64_t us) override { return 0; }
-	int64_t VDXAPIENTRY PositionToTimeVBR(int64_t samples) override { return 0; }
+	sint64 VDXAPIENTRY TimeToPositionVBR(sint64 us) override { return 0; }
+	sint64 VDXAPIENTRY PositionToTimeVBR(sint64 samples) override { return 0; }
 
 	void VDXAPIENTRY GetAudioSourceInfo(VDXAudioSourceInfo& info) override { info.mFlags = 0; }
 

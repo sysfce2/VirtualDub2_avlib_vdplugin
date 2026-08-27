@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015-2020 Anton Shekhovtsov
- * Copyright (C) 2023-2025 v0lt
+ * Copyright (C) 2023-2026 v0lt
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -47,10 +47,11 @@ int VDFFAudioSource::Release()
 	return vdxunknown<IVDXStreamSource>::Release();
 }
 
-void* VDXAPIENTRY VDFFAudioSource::AsInterface(uint32_t iid)
+void* VDXAPIENTRY VDFFAudioSource::AsInterface(uint32 iid)
 {
-	if (iid == IVDXAudioSource::kIID)
+	if (iid == IVDXAudioSource::kIID) {
 		return static_cast<IVDXAudioSource*>(this);
+	}
 
 	return vdxunknown<IVDXStreamSource>::AsInterface(iid);
 }
