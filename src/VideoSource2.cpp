@@ -71,7 +71,7 @@ int VDFFVideoSource::Release()
 	return vdxunknown<IVDXStreamSource>::Release();
 }
 
-void* VDXAPIENTRY VDFFVideoSource::AsInterface(uint32_t iid)
+void* VDXAPIENTRY VDFFVideoSource::AsInterface(uint32 iid)
 {
 	if (iid == IVDXVideoSource::kIID)
 		return static_cast<IVDXVideoSource*>(this);
@@ -815,32 +815,35 @@ bool VDFFVideoSource::CreateVideoDecoderModel(IVDXVideoDecoderModel** ppModel)
 	return true;
 }
 
-void VDFFVideoSource::GetSampleInfo(sint64 sample, VDXVideoFrameInfo& frameInfo)
+void VDFFVideoSource::GetSampleInfo(sint64 sample_num, VDXVideoFrameInfo& frameInfo)
 {
-	if (sample >= m_sample_count) {
+	if (sample_num >= m_sample_count) {
 		if (m_pSource->next_segment) {
 			auto v1 = m_pSource->next_segment->video_source;
-			v1->GetSampleInfo(sample - m_sample_count, frameInfo);
+			v1->GetSampleInfo(sample_num - m_sample_count, frameInfo);
 		}
 		return;
 	}
 
 	frameInfo.mBytePosition = -1;
 	frameInfo.mFrameType = kVDXVFT_Independent;
-	if (keyframe_gap == 1)
+	if (keyframe_gap == 1) {
 		frameInfo.mTypeChar = 'K';
-	else if (IsKey(sample))
+	} 
+	else if (IsKey(sample_num)) {
 		frameInfo.mTypeChar = 'K';
-	else
-		frameInfo.mTypeChar = frame_type[(size_t)sample];
+	}
+	else {
+		frameInfo.mTypeChar = frame_type[(size_t)sample_num];
+	}
 }
 
-bool VDFFVideoSource::IsKey(int64_t sample)
+bool VDFFVideoSource::IsKey(sint64 sample_num)
 {
-	if (sample >= m_sample_count) {
+	if (sample_num >= m_sample_count) {
 		if (m_pSource->next_segment) {
 			auto v1 = m_pSource->next_segment->video_source;
-			return v1->IsKey(sample - m_sample_count);
+			return v1->IsKey(sample_num - m_sample_count);
 		}
 		return false;
 	}
@@ -848,33 +851,33 @@ bool VDFFVideoSource::IsKey(int64_t sample)
 	if (is_image_list) return true;
 
 	if (trust_index) {
-		return (avformat_index_get_entry(m_pStream, (int)sample)->flags & AVINDEX_KEYFRAME) != 0;
+		return (avformat_index_get_entry(m_pStream, (int)sample_num)->flags & AVINDEX_KEYFRAME) != 0;
 	}
 	if (sparse_index) {
 		int64_t pos;
-		int x = calc_sparse_key(sample, pos);
-		return x == sample;
+		int x = calc_sparse_key(sample_num, pos);
+		return x == sample_num;
 	}
 
 	return false;
 }
 
-int64_t VDFFVideoSource::GetFrameNumberForSample(int64_t sample_num)
+sint64 VDFFVideoSource::GetFrameNumberForSample(sint64 sample_num)
 {
 	return sample_num;
 }
 
-int64_t VDFFVideoSource::GetSampleNumberForFrame(int64_t display_num)
+sint64 VDFFVideoSource::GetSampleNumberForFrame(sint64 display_num)
 {
 	return display_num;
 }
 
-int64_t VDFFVideoSource::GetRealFrame(int64_t display_num)
+sint64 VDFFVideoSource::GetRealFrame(sint64 display_num)
 {
 	return display_num;
 }
 
-int64_t VDFFVideoSource::GetSampleBytePosition(int64_t sample_num)
+sint64 VDFFVideoSource::GetSampleBytePosition(sint64 sample_num)
 {
 	return -1;
 }
@@ -883,13 +886,13 @@ void VDFFVideoSource::Reset()
 {
 }
 
-void VDFFVideoSource::SetDesiredFrame(int64_t frame_num)
+void VDFFVideoSource::SetDesiredFrame(sint64 frame_num)
 {
 	desired_frame = frame_num;
 	required_count = 1;
 }
 
-int64_t VDFFVideoSource::GetNextRequiredSample(bool& is_preroll)
+sint64 VDFFVideoSource::GetNextRequiredSample(bool& is_preroll)
 {
 	is_preroll = false;
 	return required_count ? desired_frame : -1;
@@ -904,7 +907,7 @@ int VDFFVideoSource::GetRequiredCount()
 //Decoder
 //////////////////////////////////////////////////////////////////////////\
 
-const void* VDFFVideoSource::DecodeFrame(const void* inputBuffer, uint32_t data_len, bool is_preroll, int64_t streamFrame, int64_t targetFrame)
+const void* VDFFVideoSource::DecodeFrame(const void* inputBuffer, uint32 data_len, bool is_preroll, sint64 sampleNumber, sint64 targetFrame)
 {
 	m_pixmap_frame = int(targetFrame);
 	m_pixmap_info.frame_num = -1;
@@ -913,7 +916,7 @@ const void* VDFFVideoSource::DecodeFrame(const void* inputBuffer, uint32_t data_
 		VDFFVideoSource* v1 = nullptr;
 		if (m_pSource->next_segment) v1 = m_pSource->next_segment->video_source;
 		if (!v1) return 0;
-		return v1->DecodeFrame(inputBuffer, data_len, is_preroll, streamFrame, targetFrame - m_sample_count);
+		return v1->DecodeFrame(inputBuffer, data_len, is_preroll, sampleNumber, targetFrame - m_sample_count);
 	}
 
 	if (is_preroll) return 0;
@@ -969,7 +972,7 @@ const void* VDFFVideoSource::DecodeFrame(const void* inputBuffer, uint32_t data_
 	}
 }
 
-uint32_t VDFFVideoSource::GetDecodePadding()
+uint32 VDFFVideoSource::GetDecodePadding()
 {
 	return 0;
 }
@@ -1792,7 +1795,7 @@ bool VDFFVideoSource::SetDecompressedFormat(const VDXBITMAPINFOHEADER* pbih)
 	return false;
 }
 
-bool VDFFVideoSource::IsDecodable(int64_t sample_num64)
+bool VDFFVideoSource::IsDecodable(sint64 sample_num64)
 {
 	return true;
 }
@@ -1971,19 +1974,19 @@ int VDFFVideoSource::calc_prefetch(const int jump)
 	return x;
 }
 
-bool VDFFVideoSource::Read(sint64 start, uint32 lCount, void* lpBuffer, uint32 cbBuffer, uint32* lBytesRead, uint32* lSamplesRead)
+bool VDFFVideoSource::Read(sint64 lStart, uint32 lCount, void* lpBuffer, uint32 cbBuffer, uint32* lBytesRead, uint32* lSamplesRead)
 {
-	if (start >= m_sample_count) {
+	if (lStart >= m_sample_count) {
 		VDFFVideoSource* v1 = nullptr;
 		if (m_pSource->next_segment) {
 			v1 = m_pSource->next_segment->video_source;
 		}
 		if (v1) {
-			return v1->Read(start - m_sample_count, lCount, lpBuffer, cbBuffer, lBytesRead, lSamplesRead);
+			return v1->Read(lStart - m_sample_count, lCount, lpBuffer, cbBuffer, lBytesRead, lSamplesRead);
 		}
 	}
 
-	if (start == m_sample_count) {
+	if (lStart == m_sample_count) {
 		*lBytesRead = 0;
 		*lSamplesRead = 0;
 		return true;
@@ -2005,7 +2008,7 @@ bool VDFFVideoSource::Read(sint64 start, uint32 lCount, void* lpBuffer, uint32 c
 		return true;
 	}
 
-	if (m_copy_mode && frame_type[(size_t)start] == 'D') {
+	if (m_copy_mode && frame_type[(size_t)lStart] == 'D') {
 		*lBytesRead = 0;
 		return true;
 	}
@@ -2013,7 +2016,7 @@ bool VDFFVideoSource::Read(sint64 start, uint32 lCount, void* lpBuffer, uint32 c
 	if (!m_copy_mode) {
 		// 0 bytes identifies "drop frame"
 		int size = 1;
-		if (frame_type[(size_t)start] == 'D') {
+		if (frame_type[(size_t)lStart] == 'D') {
 			size = 0;
 		}
 		*lBytesRead = size;
@@ -2025,7 +2028,7 @@ bool VDFFVideoSource::Read(sint64 start, uint32 lCount, void* lpBuffer, uint32 c
 	}
 
 	av_packet_unref(copy_pkt);
-	if (m_copy_mode && start != next_frame) {
+	if (m_copy_mode && lStart != next_frame) {
 		free_buffers();
 	}
 
@@ -2037,7 +2040,7 @@ bool VDFFVideoSource::Read(sint64 start, uint32 lCount, void* lpBuffer, uint32 c
 		head->required_count--;
 	}
 
-	int jump = (int)start;
+	int jump = (int)lStart;
 	if (!m_copy_mode && frame_array[jump]) {
 		jump = calc_prefetch(jump);
 		if (jump == -1) {
@@ -2045,9 +2048,9 @@ bool VDFFVideoSource::Read(sint64 start, uint32 lCount, void* lpBuffer, uint32 c
 		}
 	}
 
-	last_request = (int)start;
+	last_request = (int)lStart;
 
-	if (start >= dead_range_start && start <= dead_range_end) {
+	if (lStart >= dead_range_start && lStart <= dead_range_end) {
 		// we already known this does not work so fail fast
 		mContext.mpCallbacks->SetError("requested frame not found; next valid frame = %d", next_frame - 1);
 		return false;
@@ -2077,14 +2080,14 @@ bool VDFFVideoSource::Read(sint64 start, uint32 lCount, void* lpBuffer, uint32 c
 	}
 
 	while (1) {
-		if (!read_frame(start)) {
+		if (!read_frame(lStart)) {
 			bool fail = true;
 			if (next_frame > 0) {
 				// end of stream, fill with dups
 				BufferPage* page = frame_array[next_frame - 1];
 				if (page) {
-					copy_page(next_frame, int(start), page);
-					next_frame = int(start) + 1;
+					copy_page(next_frame, int(lStart), page);
+					next_frame = int(lStart) + 1;
 					fail = false;
 				}
 			}
@@ -2107,14 +2110,14 @@ bool VDFFVideoSource::Read(sint64 start, uint32 lCount, void* lpBuffer, uint32 c
 			return true;
 		}
 
-		if (!m_copy_mode && frame_array[(size_t)start]) {
+		if (!m_copy_mode && frame_array[(size_t)lStart]) {
 			return true;
 		}
 
 		//! missed seek or bad stream, just fail
 		// better idea is to build new corrected index maybe
-		if (next_frame > start) {
-			dead_range_start = start;
+		if (next_frame > lStart) {
+			dead_range_start = lStart;
 			dead_range_end = next_frame - 2;
 			mContext.mpCallbacks->SetError("requested frame not found; next valid frame = %d", next_frame - 1);
 			return false;

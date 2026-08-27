@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015-2020 Anton Shekhovtsov
- * Copyright (C) 2023-2025 v0lt
+ * Copyright (C) 2023-2026 v0lt
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -35,12 +35,12 @@ public:
 
 	int VDXAPIENTRY AddRef() override;
 	int VDXAPIENTRY Release() override;
-	void* VDXAPIENTRY AsInterface(uint32_t iid) override;
+	void* VDXAPIENTRY AsInterface(uint32 iid) override;
 
 	//Stream Interface
 	void VDXAPIENTRY GetStreamSourceInfo(VDXStreamSourceInfo&) override;
 	void VDXAPIENTRY GetStreamSourceInfoV3(VDXStreamSourceInfoV3&) override;
-	bool VDXAPIENTRY Read(int64_t lStart, uint32_t lCount, void* lpBuffer, uint32_t cbBuffer, uint32_t* lBytesRead, uint32_t* lSamplesRead) override;
+	bool VDXAPIENTRY Read(sint64 lStart, uint32 lCount, void* lpBuffer, uint32 cbBuffer, uint32* lBytesRead, uint32* lSamplesRead) override;
 
 	void VDXAPIENTRY ApplyStreamMode(uint32 flags) override;
 	bool VDXAPIENTRY QueryStreamMode(uint32 flags) override;
@@ -52,32 +52,32 @@ public:
 	bool VDXAPIENTRY IsDecodeErrorModeSupported(ErrorMode mode) override;
 
 	bool VDXAPIENTRY IsVBR() override { return false; }
-	sint64 VDXAPIENTRY TimeToPositionVBR(int64_t us) override { return 0; }
-	sint64 VDXAPIENTRY PositionToTimeVBR(int64_t samples) override { return 0; }
+	sint64 VDXAPIENTRY TimeToPositionVBR(sint64 us) override { return 0; }
+	sint64 VDXAPIENTRY PositionToTimeVBR(sint64 samples) override { return 0; }
 
 	void VDXAPIENTRY GetVideoSourceInfo(VDXVideoSourceInfo& info) override;
 
 	bool VDXAPIENTRY CreateVideoDecoderModel(IVDXVideoDecoderModel** ppModel) override;
 	bool VDXAPIENTRY CreateVideoDecoder(IVDXVideoDecoder** ppDecoder) override;
 
-	void        VDXAPIENTRY GetSampleInfo(int64_t sample_num, VDXVideoFrameInfo& frameInfo) override;
+	void        VDXAPIENTRY GetSampleInfo(sint64 sample_num, VDXVideoFrameInfo& frameInfo) override;
 
-	bool        VDXAPIENTRY IsKey(int64_t lSample) override;
-	int64_t     VDXAPIENTRY GetFrameNumberForSample(int64_t sample_num) override;
-	int64_t     VDXAPIENTRY GetSampleNumberForFrame(int64_t display_num) override;
-	int64_t     VDXAPIENTRY GetRealFrame(int64_t display_num) override;
+	bool        VDXAPIENTRY IsKey(sint64 sample_num) override;
+	sint64      VDXAPIENTRY GetFrameNumberForSample(sint64 sample_num) override;
+	sint64      VDXAPIENTRY GetSampleNumberForFrame(sint64 display_num) override;
+	sint64      VDXAPIENTRY GetRealFrame(sint64 display_num) override;
 
-	int64_t     VDXAPIENTRY GetSampleBytePosition(int64_t sample_num) override;
+	sint64      VDXAPIENTRY GetSampleBytePosition(sint64 sample_num) override;
 
 	//Model Interface
 	void    VDXAPIENTRY Reset() override;
-	void    VDXAPIENTRY SetDesiredFrame(int64_t frame_num) override;
-	int64_t VDXAPIENTRY GetNextRequiredSample(bool& is_preroll) override;
+	void    VDXAPIENTRY SetDesiredFrame(sint64 frame_num) override;
+	sint64  VDXAPIENTRY GetNextRequiredSample(bool& is_preroll) override;
 	int     VDXAPIENTRY GetRequiredCount() override;
 
 	//Decoder Interface
-	const void* VDXAPIENTRY DecodeFrame(const void* inputBuffer, uint32_t data_len, bool is_preroll, int64_t streamFrame, int64_t targetFrame) override;
-	uint32_t    VDXAPIENTRY GetDecodePadding() override;
+	const void* VDXAPIENTRY DecodeFrame(const void* inputBuffer, uint32 data_len, bool is_preroll, sint64 sampleNumber, sint64 targetFrame) override;
+	uint32      VDXAPIENTRY GetDecodePadding() override;
 	bool        VDXAPIENTRY IsFrameBufferValid() override;
 	const VDXPixmap& VDXAPIENTRY GetFrameBuffer() override;
 	const FilterModPixmapInfo& VDXAPIENTRY GetFrameBufferInfo() override;
@@ -86,7 +86,7 @@ public:
 	bool        VDXAPIENTRY SetDecompressedFormat(const VDXBITMAPINFOHEADER* pbih) override;
 
 	const void* VDXAPIENTRY GetFrameBufferBase() override;
-	bool        VDXAPIENTRY IsDecodable(int64_t sample_num) override;
+	bool        VDXAPIENTRY IsDecodable(sint64 sample_num) override;
 
 private:
 	//Internal
