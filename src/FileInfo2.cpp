@@ -210,16 +210,17 @@ void VDFFInputFileInfoDialog::print_video()
 	AVStream* pVideoStream = segment->video_source->m_pStream;
 	AVCodecParameters* codecpar = pVideoStream->codecpar;
 
-
-	const AVCodec* pCodec = avcodec_find_decoder(codecpar->codec_id);
-	const char* codec_name = "N/A";
-	if (pCodec) {
-		codec_name = pCodec->name;
-	} else if (codecpar->codec_id == AV_CODEC_ID_MPEG2TS) {
-		codec_name = "mpeg2ts";
+	
+	std::string codec_name(pVideoCtx->codec_descriptor->name);
+	if (pVideoCtx->codec_id == AV_CODEC_ID_RAWVIDEO) {
+		char buf[AV_FOURCC_MAX_STRING_SIZE];
+		av_fourcc_make_string(buf, pVideoCtx->codec_tag);
+		codec_name += std::format(" '{}'", buf);
 	}
-
-	SetDlgItemTextA(mhdlg, IDC_VIDEO_CODECNAME, codec_name);
+	else if (codec_name != pVideoCtx->codec->name) {
+		codec_name += std::format(" ({})", pVideoCtx->codec->name);
+	}
+	SetDlgItemTextA(mhdlg, IDC_VIDEO_CODECNAME, codec_name.c_str());
 
 	if (pVideoCtx->pix_fmt != AV_PIX_FMT_NONE)
 	{
