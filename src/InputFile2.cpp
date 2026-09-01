@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015-2020 Anton Shekhovtsov
- * Copyright (C) 2023-2025 v0lt
+ * Copyright (C) 2023-2026 v0lt
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -766,11 +766,12 @@ AVFormatContext* VDFFInputFile::OpenVideoFile()
 		"j2k_pipe",
 		"jpeg_pipe",
 		"jpegls_pipe",
+		"jpegxl_pipe",
 		"pam_pipe",
 		"pbm_pipe",
 		"pcx_pipe",
-		"pgmyuv_pipe",
 		"pgm_pipe",
+		"pgmyuv_pipe",
 		"pictor_pipe",
 		"png_pipe",
 		"ppm_pipe",
@@ -780,7 +781,6 @@ AVFormatContext* VDFFInputFile::OpenVideoFile()
 		"sunrast_pipe",
 		"tiff_pipe",
 		"webp_pipe",
-		"jpegxl_pipe",
 	};
 	const char* single_image_names[] = {
 		"apng",
@@ -924,14 +924,15 @@ bool VDFFInputFile::detect_image_list(wchar_t* dst, int dst_count, int* start, i
 
 int VDFFInputFile::find_stream(AVFormatContext* fmt, AVMediaType type)
 {
-	int video = -1;
-	int r0 = av_find_best_stream(fmt, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
-	if (r0 >= 0) video = r0;
-	if (type == AVMEDIA_TYPE_VIDEO) return video;
-
-	int r1 = av_find_best_stream(fmt, type, -1, video, nullptr, 0);
-	if (r1 >= 0) return r1;
-	return -1;
+	int ret = av_find_best_stream(fmt, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
+	const int video = (ret >= 0) ? ret : -1;
+	if (type == AVMEDIA_TYPE_VIDEO) {
+		return video;
+	}
+	
+	ret = av_find_best_stream(fmt, type, -1, video, nullptr, 0);
+	const int stream = (ret >= 0) ? ret : -1;
+	return stream;
 }
 
 bool VDFFInputFile::GetVideoSource(int index, IVDXVideoSource** ppVS)
