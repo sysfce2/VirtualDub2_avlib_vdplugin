@@ -7,7 +7,7 @@ SET DEVENV_PATH=%VS_PATH%\Common7\IDE\devenv
 
 ECHO Building the avlib_vdplugin Release x64.
 
-"%DEVENV_PATH%" avlib.sln /Rebuild "Release|x64"
+"%DEVENV_PATH%" avlib_vdplugin.sln /Rebuild "Release|x64"
 
 ENDLOCAL
 TIMEOUT /T 5
