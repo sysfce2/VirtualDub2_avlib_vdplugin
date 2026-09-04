@@ -575,7 +575,7 @@ int VDFFVideoSource::initStream(VDFFInputFile* pSource, const int streamIndex)
 	return 0;
 }
 
-bool VDFFVideoSource::possible_delay()
+bool VDFFVideoSource::possible_delay() const
 {
 	if (is_intra()) return false;
 
@@ -604,7 +604,7 @@ bool VDFFVideoSource::is_intra() const
 	return false;
 }
 
-bool VDFFVideoSource::allow_copy()
+bool VDFFVideoSource::allow_copy() const
 {
 	bool intra = is_intra();
 	return intra;

@@ -217,8 +217,8 @@ private:
 	void setDecodeMode(const bool v);
 	void setCacheMode(const bool v);
 	bool is_intra() const;
-	bool allow_copy();
-	bool possible_delay();
+	bool allow_copy() const;
+	bool possible_delay() const;
 	int  calc_sparse_key(const int64_t sample, int64_t& pos);
 	int  calc_seek(const int jump, int64_t& pos);
 	int  calc_prefetch(const int jump);
