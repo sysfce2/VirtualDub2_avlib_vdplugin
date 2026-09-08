@@ -2139,7 +2139,7 @@ bool VDFFVideoSource::read_frame(const int64_t desired_frame, bool init)
 			// end of stream, grab buffered images
 			ret = avcodec_send_packet(m_pCodecCtx, nullptr);
 			while (ret >= 0) {
-				ret = avcodec_receive_frame(m_pCodecCtx, m_pFrame);
+				ret = avcodec_receive_frame_flags(m_pCodecCtx, m_pFrame, AV_CODEC_RECEIVE_FRAME_FLAG_SYNCHRONOUS);
 				if (ret != 0) {
 					return false;
 				}
@@ -2157,7 +2157,7 @@ bool VDFFVideoSource::read_frame(const int64_t desired_frame, bool init)
 			if (pkt->stream_index == m_streamIndex) {
 				ret = avcodec_send_packet(m_pCodecCtx, pkt.get());
 				while (ret >= 0) {
-					ret = avcodec_receive_frame(m_pCodecCtx, m_pFrame);
+					ret = avcodec_receive_frame_flags(m_pCodecCtx, m_pFrame, AV_CODEC_RECEIVE_FRAME_FLAG_SYNCHRONOUS);
 					if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF) {
 						break;
 					} else if (ret < 0) {
