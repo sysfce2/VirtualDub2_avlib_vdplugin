@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2025 v0lt
+ * Copyright (C) 2025-2026 v0lt
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
@@ -88,6 +88,9 @@ std::string get_last_av_error()
 
 std::string AVError2Str(const int errnum)
 {
+	if (errnum >= 0) {
+		return std::to_string(errnum);
+	}
 	char errBuf[AV_ERROR_MAX_STRING_SIZE] = {};
 	return std::string(av_make_error_string(errBuf, sizeof(errBuf), errnum));
 }
