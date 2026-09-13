@@ -1,6 +1,6 @@
 avlib.vdplugin history
 
-1.1.4.x dev
+1.1.5.506 - 2026-09-13
 ----------------------
 Improved support for interlaced videos (now uses kPixFormat_YUV420i_Planar).
 Fixed the "Requested frame not found" error that occurred with some valid videos near the end of playback on certain PCs.
